@@ -1,0 +1,32 @@
+/* src/styles/sidebar.css */
+.sidebar-icon {
+    transition: transform 0.3s ease, color 0.3s ease;
+  }
+  
+  .sidebar-icon:hover {
+    transform: scale(1.2) rotate(15deg);
+    color: #60a5fa;
+  }
+  
+  .sidebar-item {
+    transition: all 0.3s ease;
+  }
+  
+  .sidebar-item:hover {
+    background-color: rgba(31, 41, 55, 0.7);
+    transform: translateX(5px);
+  }
+  
+  .sidebar-mobile {
+    transition: transform 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  }
+  
+  .sidebar-mobile-hidden {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  
+  .sidebar-mobile-visible {
+    transform: translateX(0);
+    opacity: 1;
+  }
