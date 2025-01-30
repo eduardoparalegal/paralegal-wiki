@@ -35,7 +35,17 @@ app.use(helmet()); // Seguridad de Headers HTTP
 app.use(mongoSanitize()); // Prevención de inyección NoSQL
 app.use(express.json({ limit: '10kb' })); // Limitar tamaño de payload
 app.use(cors({
-  origin: config.CORS_ORIGIN,
+  origin: function(origin, callback) {
+      // Permitir peticiones sin origin (como Postman)
+      if (!origin) return callback(null, true);
+      
+      if (config.CORS_ORIGINS.indexOf(origin) !== -1) {
+          callback(null, true);
+      } else {
+          console.log('Origin blocked by CORS:', origin);
+          callback(new Error('Not allowed by CORS'));
+      }
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']

@@ -1,9 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { FileText, Book, Scale, Calculator, Menu, X, Sun, Moon, Home, ChevronDown, ChevronUp } from 'lucide-react';
+import { 
+  FileText, 
+  Book, 
+  Scale, 
+  Calculator, 
+  Menu, 
+  X, 
+  Sun, 
+  Moon, 
+  Home, 
+  ChevronDown, 
+  ChevronUp, 
+  Search, 
+  History,
+  LogOut,
+  BookmarkCheck
+} from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import '../styles/Sidebar.css';  // Correct import path
-
+import '../styles/Sidebar.css';
 
 const Layout = ({ children }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -20,8 +35,9 @@ const Layout = ({ children }) => {
       icon: Scale, 
       submenu: [
         { name: 'Motion for name correction', href: '/motions/name-correction' },
-        { name: 'Motion 1', href: '/motions/motion-1' },
-        { name: 'Motion 2', href: '/motions/motion-2' },
+        { name: 'Motion to advance hearing', href: '/motions/advance-hearing' },
+        { name: 'Motion to consolidate', href: '/motions/consolidate' },
+        { name: 'Motion to reopen', href: '/motions/reopen' }
       ]
     },
     { 
@@ -31,11 +47,21 @@ const Layout = ({ children }) => {
       submenu: [
         { name: 'New Declaration', href: '/declaration/new' },
         { name: 'Search Declarations', href: '/declaration/search' },
+        { name: 'Edit Declaration', href: '/declaration/edit' }
       ]
     },
+    { 
+      name: 'EOIR Search', 
+      href: '/eoir', 
+      icon: Search,
+      submenu: [
+        { name: 'Case Search', href: '/case-search', icon: Search },
+        { name: 'Search History', href: '/history', icon: History },
+        { name: 'Saved Cases', href: '/saved', icon: BookmarkCheck }
+      ]
+    }
   ];
 
-  // Add event listener to close sidebar when clicking outside on mobile
   useEffect(() => {
     const handleOutsideClick = (event) => {
       const sidebar = document.querySelector('.mobile-sidebar');
@@ -52,7 +78,6 @@ const Layout = ({ children }) => {
       }
     };
 
-    // Add event listener only on mobile screens
     if (window.innerWidth < 1024) {
       document.addEventListener('mousedown', handleOutsideClick);
       return () => {
@@ -98,8 +123,8 @@ const Layout = ({ children }) => {
                     } w-full group flex items-center justify-between rounded-md px-2 py-2 text-sm font-medium`}
                   >
                     <div className="flex items-center">
-                    <item.icon className="mr-3 h-5 w-5 flex-shrink-0 sidebar-icon" />
-                    {item.name}
+                      <item.icon className="mr-3 h-5 w-5 flex-shrink-0 sidebar-icon" />
+                      {item.name}
                     </div>
                     {expandedMenus[item.name] ? (
                       <ChevronUp className="h-4 w-4" />
@@ -119,6 +144,7 @@ const Layout = ({ children }) => {
                               : 'text-gray-400 hover:bg-gray-800 hover:text-white'
                           } group flex items-center rounded-md px-2 py-1.5 text-sm`}
                         >
+                          {subItem.icon && <subItem.icon className="mr-3 h-4 w-4" />}
                           {subItem.name}
                         </Link>
                       ))}
@@ -144,6 +170,7 @@ const Layout = ({ children }) => {
             onClick={handleLogout}
             className="w-full text-left text-gray-400 hover:bg-gray-800 hover:text-white group flex items-center rounded-md px-2 py-2 text-sm font-medium mt-4"
           >
+            <LogOut className="mr-3 h-5 w-5 flex-shrink-0" />
             Logout
           </button>
         </nav>

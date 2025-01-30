@@ -11,6 +11,12 @@ import AnimatedLogin from './components/AnimatedLogin/AnimatedLogin';
 import Loader from './components/Loader';
 import { ThemeProvider } from './context/ThemeContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { Card, CardContent, CardHeader, CardTitle } from './components/ui/Card';
+
+// Importar los componentes con la ruta corregida
+import CaseSearchPage from './pages/CaseSearchPage';
+import HistoryPage from './pages/HistoryPage';
+import SavedCasesPage from './pages/SavedCasesPage';
 
 // Import pleadings pages
 import EligibilityCheck from './components/pleadings/EligibilityCheck';
@@ -124,12 +130,23 @@ function App() {
                 <ProtectedRoute>
                   <Layout>
                     <Routes>
-                      <Route path="/home" element={<HomePage />} />
-                      <Route path="/pleadings/*" element={<PleadingsRoutes />} />
-                      <Route path="/motions" element={<MotionsPage />} />
-                      <Route path="/forms" element={<FormsPage />} />
-                      <Route path="/resources/*" element={<ResourcesPage />} />
-                      <Route path="/declaration/*" element={<DeclarationPage />} />
+                    <Route path="home" element={<HomePage />} />
+                      <Route path="pleadings" element={<PleadingsPage />} />
+                      <Route path="motions" element={<MotionsPage />} />
+                      <Route path="declaration" element={<ClientForm />} />
+                      <Route path="case-search" element={<CaseSearchPage />} />
+                      <Route path="history" element={<HistoryPage />} />
+                      <Route path="saved" element={<SavedCasesPage />} />
+                      
+                      {/* Pleadings subrutas */}
+                      <Route path="pleadings/how-to-draft" element={<HowToDraftPleadings />} />
+                      <Route path="pleadings/how-to-know" element={<HowToKnowPleadings />} />
+                      <Route path="pleadings/eligibility" element={<EligibilityCheck />} />
+                      <Route path="pleadings/guidelines" element={<CaseTypeGuidelines />} />
+                      <Route path="pleadings/templates" element={<NtaTemplates />} />
+                      <Route path="pleadings/special" element={<SpecialCases />} />
+                      <Route path="pleadings/information" element={<InformationPleadings />} />
+                   
                     </Routes>
                   </Layout>
                 </ProtectedRoute>
