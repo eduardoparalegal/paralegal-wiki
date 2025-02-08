@@ -1,0 +1,7 @@
+services:
+  - type: web
+    name: paralegal-wiki
+    env: node
+    buildCommand: npm install --legacy-peer-deps && CI=false npm run build
+    startCommand: npm start
+    nodeVersion: 18.19.0
