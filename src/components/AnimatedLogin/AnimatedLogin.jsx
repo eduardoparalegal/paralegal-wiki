@@ -1,8 +1,8 @@
-// src/components/AnimatedLogin/AnimatedLogin.jsx
 import React, { useEffect, useRef, useState } from 'react';
 import { gsap } from 'gsap';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { endpoints } from '../../config/api';
 import './AnimatedLogin.css';
 
 const AnimatedLogin = () => {
@@ -200,7 +200,7 @@ const AnimatedLogin = () => {
       window.removeEventListener('resize', resize);
       cancelAnimationFrame(requestRef.current);
     };
-  }, [animate, initHeader, shiftPoint, mouseMove, scrollCheck, resize, pointsRef, requestRef]);
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -208,20 +208,23 @@ const AnimatedLogin = () => {
     setError('');
 
     try {
-      const response = await fetch('http://localhost:5000/api/auth/login', {
+      // Usar la URL desde la configuración
+      const response = await fetch(endpoints.login, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Accept': 'application/json'
         },
+        credentials: 'include', // Importante para cookies
         body: JSON.stringify(credentials),
       });
 
-      const contentType = response.headers.get("content-type");
-      if (!contentType || !contentType.includes("application/json")) {
-        throw new Error('Server response was not JSON');
+      let data;
+      try {
+        data = await response.json();
+      } catch (err) {
+        throw new Error('Invalid response from server');
       }
-
-      const data = await response.json();
 
       if (!response.ok) {
         throw new Error(data.message || 'Login failed');
@@ -237,7 +240,7 @@ const AnimatedLogin = () => {
       
     } catch (err) {
       console.error('Login error:', err);
-      setError(err.message || 'An error occurred during login');
+      setError(err.message || 'An error occurred during login. Please try again.');
     } finally {
       setIsLoading(false);
     }
