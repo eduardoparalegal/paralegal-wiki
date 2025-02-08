@@ -2,8 +2,10 @@ import React, { useEffect, useRef, useState } from 'react';
 import { gsap } from 'gsap';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { endpoints } from '../../config/api';
 import './AnimatedLogin.css';
+
+// Define API URL with fallback
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
 const AnimatedLogin = () => {
   // Animation refs
@@ -46,19 +48,16 @@ const AnimatedLogin = () => {
   };
 
   const initHeader = () => {
+    if (!headerRef.current || !canvasRef.current) return;
+    
     widthRef.current = window.innerWidth;
     heightRef.current = window.innerHeight;
     targetRef.current = { x: widthRef.current/2, y: heightRef.current/2 };
 
-    if (headerRef.current) {
-      headerRef.current.style.height = heightRef.current+'px';
-    }
-
-    if (canvasRef.current) {
-      canvasRef.current.width = widthRef.current;
-      canvasRef.current.height = heightRef.current;
-      ctxRef.current = canvasRef.current.getContext('2d');
-    }
+    headerRef.current.style.height = heightRef.current+'px';
+    canvasRef.current.width = widthRef.current;
+    canvasRef.current.height = heightRef.current;
+    ctxRef.current = canvasRef.current.getContext('2d');
 
     // Create points
     pointsRef.current = [];
@@ -80,20 +79,9 @@ const AnimatedLogin = () => {
         if(!(p1 === p2)) {
           let placed = false;
           for(let k = 0; k < 5; k++) {
-            if(!placed) {
-              if(!closest[k]) {
-                closest[k] = p2;
-                placed = true;
-              }
-            }
-          }
-
-          for(let k = 0; k < 5; k++) {
-            if(!placed) {
-              if(getDistance(p1, p2) < getDistance(p1, closest[k])) {
-                closest[k] = p2;
-                placed = true;
-              }
+            if(!placed && !closest[k]) {
+              closest[k] = p2;
+              placed = true;
             }
           }
         }
@@ -108,15 +96,8 @@ const AnimatedLogin = () => {
   };
 
   const mouseMove = (e) => {
-    let posx = 0;
-    let posy = 0;
-    if (e.pageX || e.pageY) {
-      posx = e.pageX;
-      posy = e.pageY;
-    } else if (e.clientX || e.clientY) {
-      posx = e.clientX + document.body.scrollLeft + document.documentElement.scrollLeft;
-      posy = e.clientY + document.body.scrollTop + document.documentElement.scrollTop;
-    }
+    let posx = e.pageX || e.clientX + document.body.scrollLeft + document.documentElement.scrollLeft;
+    let posy = e.pageY || e.clientY + document.body.scrollTop + document.documentElement.scrollTop;
     targetRef.current = { x: posx, y: posy };
   };
 
@@ -158,8 +139,8 @@ const AnimatedLogin = () => {
   };
 
   const animate = () => {
-    if(animateHeaderRef.current) {
-      ctxRef.current?.clearRect(0,0,widthRef.current,heightRef.current);
+    if(animateHeaderRef.current && ctxRef.current) {
+      ctxRef.current.clearRect(0, 0, widthRef.current, heightRef.current);
       for(let i in pointsRef.current) {
         const point = pointsRef.current[i];
         if(Math.abs(getDistance(targetRef.current, point)) < 4000) {
@@ -183,22 +164,28 @@ const AnimatedLogin = () => {
   };
 
   useEffect(() => {
-    initHeader();
+    try {
+      initHeader();
   
-    if(!('ontouchstart' in window)) {
-      window.addEventListener('mousemove', mouseMove);
+      if(!('ontouchstart' in window)) {
+        window.addEventListener('mousemove', mouseMove);
+      }
+      window.addEventListener('scroll', scrollCheck);
+      window.addEventListener('resize', resize);
+    
+      animate();
+      pointsRef.current.forEach(point => shiftPoint(point));
+    } catch (error) {
+      console.error('Animation initialization error:', error);
     }
-    window.addEventListener('scroll', scrollCheck);
-    window.addEventListener('resize', resize);
-  
-    animate();
-    pointsRef.current.forEach(point => shiftPoint(point));
   
     return () => {
       window.removeEventListener('mousemove', mouseMove);
       window.removeEventListener('scroll', scrollCheck);
       window.removeEventListener('resize', resize);
-      cancelAnimationFrame(requestRef.current);
+      if (requestRef.current) {
+        cancelAnimationFrame(requestRef.current);
+      }
     };
   }, []);
 
@@ -208,23 +195,17 @@ const AnimatedLogin = () => {
     setError('');
 
     try {
-      // Usar la URL desde la configuración
-      const response = await fetch(endpoints.login, {
+      const response = await fetch(`${API_URL}/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json'
         },
-        credentials: 'include', // Importante para cookies
+        credentials: 'include',
         body: JSON.stringify(credentials),
       });
 
-      let data;
-      try {
-        data = await response.json();
-      } catch (err) {
-        throw new Error('Invalid response from server');
-      }
+      const data = await response.json();
 
       if (!response.ok) {
         throw new Error(data.message || 'Login failed');
