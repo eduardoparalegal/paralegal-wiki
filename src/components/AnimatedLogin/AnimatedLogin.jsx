@@ -4,20 +4,30 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import './AnimatedLogin.css';
 
-// Define API URL with fallback
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+// Define API URL with proper fallback and error handling
+const getApiUrl = () => {
+  try {
+    return process.env.REACT_APP_API_URL || 'http://localhost:3000';
+  } catch (error) {
+    console.warn('Failed to load API URL from env, using default:', error);
+    return 'http://localhost:3000';
+  }
+};
+
+const API_URL = getApiUrl();
 
 const AnimatedLogin = () => {
-  // Animation refs
+  // Animation refs with proper initialization
   const canvasRef = useRef(null);
   const headerRef = useRef(null);
   const pointsRef = useRef([]);
   const ctxRef = useRef(null);
   const targetRef = useRef({ x: 0, y: 0 });
-  const widthRef = useRef(0);
-  const heightRef = useRef(0);
+  const widthRef = useRef(window.innerWidth);
+  const heightRef = useRef(window.innerHeight);
   const animateHeaderRef = useRef(true);
   const requestRef = useRef();
+  const isInitializedRef = useRef(false);
 
   // Login state
   const [credentials, setCredentials] = useState({ username: '', password: '' });
@@ -28,9 +38,9 @@ const AnimatedLogin = () => {
 
   class Circle {
     constructor(pos, rad, color) {
-      this.pos = pos || null;
-      this.radius = rad || null;
-      this.color = color || null;
+      this.pos = pos || { x: 0, y: 0 };
+      this.radius = rad || 2;
+      this.color = color || 'rgba(156,217,249,0.3)';
       this.active = 0;
     }
 
@@ -48,87 +58,83 @@ const AnimatedLogin = () => {
   };
 
   const initHeader = () => {
-    if (!headerRef.current || !canvasRef.current) return;
-    
+    if (!headerRef.current || !canvasRef.current || isInitializedRef.current) return;
+
     widthRef.current = window.innerWidth;
     heightRef.current = window.innerHeight;
     targetRef.current = { x: widthRef.current/2, y: heightRef.current/2 };
 
-    headerRef.current.style.height = heightRef.current+'px';
+    headerRef.current.style.height = `${heightRef.current}px`;
     canvasRef.current.width = widthRef.current;
     canvasRef.current.height = heightRef.current;
     ctxRef.current = canvasRef.current.getContext('2d');
 
-    // Create points
+    // Create points with proper initialization
     pointsRef.current = [];
-    for(let x = 0; x < widthRef.current; x = x + widthRef.current/20) {
-      for(let y = 0; y < heightRef.current; y = y + heightRef.current/20) {
-        const px = x + Math.random()*widthRef.current/20;
-        const py = y + Math.random()*heightRef.current/20;
+    const stepX = widthRef.current/20;
+    const stepY = heightRef.current/20;
+
+    for(let x = 0; x < widthRef.current; x += stepX) {
+      for(let y = 0; y < heightRef.current; y += stepY) {
+        const px = x + Math.random()*stepX;
+        const py = y + Math.random()*stepY;
         const p = {x: px, originX: px, y: py, originY: py };
         pointsRef.current.push(p);
       }
     }
 
-    // For each point find the 5 closest points
-    for(let i = 0; i < pointsRef.current.length; i++) {
-      const closest = [];
-      const p1 = pointsRef.current[i];
-      for(let j = 0; j < pointsRef.current.length; j++) {
-        const p2 = pointsRef.current[j];
-        if(!(p1 === p2)) {
-          let placed = false;
-          for(let k = 0; k < 5; k++) {
-            if(!placed && !closest[k]) {
-              closest[k] = p2;
-              placed = true;
-            }
-          }
-        }
-      }
-      p1.closest = closest;
-    }
+    // Find closest points with improved efficiency
+    pointsRef.current.forEach(point => {
+      const closest = pointsRef.current
+        .filter(p => p !== point)
+        .sort((a, b) => getDistance(point, a) - getDistance(point, b))
+        .slice(0, 5);
+      point.closest = closest;
+      point.circle = new Circle(point, 2+Math.random()*2);
+    });
 
-    // Assign circles to points
-    for(let i in pointsRef.current) {
-      pointsRef.current[i].circle = new Circle(pointsRef.current[i], 2+Math.random()*2, 'rgba(255,255,255,0.3)');
-    }
+    isInitializedRef.current = true;
   };
 
   const mouseMove = (e) => {
-    let posx = e.pageX || e.clientX + document.body.scrollLeft + document.documentElement.scrollLeft;
-    let posy = e.pageY || e.clientY + document.body.scrollTop + document.documentElement.scrollTop;
+    if (!headerRef.current) return;
+    const posx = e.clientX;
+    const posy = e.clientY;
     targetRef.current = { x: posx, y: posy };
   };
 
   const scrollCheck = () => {
+    if (!headerRef.current) return;
     animateHeaderRef.current = document.body.scrollTop <= heightRef.current;
   };
 
   const resize = () => {
+    if (!headerRef.current || !canvasRef.current) return;
+    
     widthRef.current = window.innerWidth;
     heightRef.current = window.innerHeight;
-    if (headerRef.current) {
-      headerRef.current.style.height = heightRef.current+'px';
-    }
-    if (canvasRef.current) {
-      canvasRef.current.width = widthRef.current;
-      canvasRef.current.height = heightRef.current;
-    }
+    headerRef.current.style.height = `${heightRef.current}px`;
+    canvasRef.current.width = widthRef.current;
+    canvasRef.current.height = heightRef.current;
+    
+    // Reinitialize points on resize
+    isInitializedRef.current = false;
+    initHeader();
   };
 
   const drawLines = (p) => {
-    if(!p.active || !ctxRef.current) return;
-    for(let i in p.closest) {
+    if (!p.active || !ctxRef.current || !p.closest) return;
+    p.closest.forEach(closestPoint => {
       ctxRef.current.beginPath();
       ctxRef.current.moveTo(p.x, p.y);
-      ctxRef.current.lineTo(p.closest[i].x, p.closest[i].y);
+      ctxRef.current.lineTo(closestPoint.x, closestPoint.y);
       ctxRef.current.strokeStyle = `rgba(156,217,249,${p.active})`;
       ctxRef.current.stroke();
-    }
+    });
   };
 
   const shiftPoint = (p) => {
+    if (!p) return;
     gsap.to(p, {
       duration: 1 + Math.random(),
       x: p.originX - 50 + Math.random()*100,
@@ -139,35 +145,39 @@ const AnimatedLogin = () => {
   };
 
   const animate = () => {
-    if(animateHeaderRef.current && ctxRef.current) {
-      ctxRef.current.clearRect(0, 0, widthRef.current, heightRef.current);
-      for(let i in pointsRef.current) {
-        const point = pointsRef.current[i];
-        if(Math.abs(getDistance(targetRef.current, point)) < 4000) {
-          point.active = 0.3;
-          point.circle.active = 0.6;
-        } else if(Math.abs(getDistance(targetRef.current, point)) < 20000) {
-          point.active = 0.1;
-          point.circle.active = 0.3;
-        } else if(Math.abs(getDistance(targetRef.current, point)) < 40000) {
-          point.active = 0.02;
-          point.circle.active = 0.1;
-        } else {
-          point.active = 0;
-          point.circle.active = 0;
-        }
-        drawLines(point);
-        point.circle.draw();
+    if (!animateHeaderRef.current || !ctxRef.current) return;
+    
+    ctxRef.current.clearRect(0, 0, widthRef.current, heightRef.current);
+    
+    pointsRef.current.forEach(point => {
+      const distance = getDistance(targetRef.current, point);
+      
+      if (distance < 4000) {
+        point.active = 0.3;
+        point.circle.active = 0.6;
+      } else if (distance < 20000) {
+        point.active = 0.1;
+        point.circle.active = 0.3;
+      } else if (distance < 40000) {
+        point.active = 0.02;
+        point.circle.active = 0.1;
+      } else {
+        point.active = 0;
+        point.circle.active = 0;
       }
-    }
+      
+      drawLines(point);
+      point.circle.draw();
+    });
+    
     requestRef.current = requestAnimationFrame(animate);
   };
 
   useEffect(() => {
     try {
       initHeader();
-  
-      if(!('ontouchstart' in window)) {
+      
+      if (!('ontouchstart' in window)) {
         window.addEventListener('mousemove', mouseMove);
       }
       window.addEventListener('scroll', scrollCheck);
@@ -215,7 +225,7 @@ const AnimatedLogin = () => {
         throw new Error('Token not received from server');
       }
 
-      login(data.token);
+      await login(data.token);
       setCredentials({ username: '', password: '' });
       navigate('/home');
       
