@@ -21,10 +21,10 @@
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.22.0",
     "react-scripts": "5.0.1",
+    "serve": "^14.2.1",
     "tailwind-merge": "^2.6.0",
     "tailwindcss": "^3.4.17",
-    "web-vitals": "^4.2.4",
-    "serve": "^14.2.1"
+    "web-vitals": "^4.2.4"
   },
   "scripts": {
     "start": "serve -s build",
@@ -57,6 +57,6 @@
     "@babel/plugin-proposal-private-property-in-object": "^7.21.11"
   },
   "engines": {
-  "node": "18.19.0"
-}
+    "node": "18.19.0"
+  }
 }
