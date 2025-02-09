@@ -5,6 +5,12 @@ import { useAuth } from '../../context/AuthContext';
 import { authAPI } from '../../config/api';
 import './AnimatedLogin.css';
 
+// Define API_URL
+const API_URL = process.env.NODE_ENV === 'production'
+  ? 'https://paralegal-wiki.onrender.com/api'  // URL de producción
+  : 'http://localhost:5000/api';               // URL de desarrollo
+
+
 const AnimatedLogin = () => {
   const canvasRef = useRef(null);
   const headerRef = useRef(null);
