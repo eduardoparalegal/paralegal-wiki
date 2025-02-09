@@ -3,6 +3,7 @@ import { gsap } from 'gsap';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import './AnimatedLogin.css';
+import { authAPI } from '../../config/api';  // Asegúrate de que la ruta sea correcta
 
 
 const onSubmit = async (formData) => {
