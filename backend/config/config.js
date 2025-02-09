@@ -1,4 +1,3 @@
-// === config/config.js ===
 const config = {
   JWT_SECRET: process.env.JWT_SECRET || 'tu-secreto-muy-seguro',
   MONGODB_URI: process.env.MONGODB_URI || 'mongodb+srv://Eduardo:Gatosbellos0@paralegal-a.nfevj.mongodb.net/paralegal',

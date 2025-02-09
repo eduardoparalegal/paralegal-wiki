@@ -1,4 +1,3 @@
-// === config/db.js ===
 const mongoose = require('mongoose');
 const config = require('./config');
 
@@ -6,15 +5,15 @@ const connectDB = async () => {
   try {
     const conn = await mongoose.connect(config.MONGODB_URI, {
       useNewUrlParser: true,
-      useUnifiedTopology: true
+      useUnifiedTopology: true,
     });
 
     console.log(`MongoDB Connected: ${conn.connection.host}`);
-    
+    console.log(`Database name: ${conn.connection.name}`);
+
     // Test the connection
     await mongoose.connection.db.admin().ping();
     console.log('Database ping successful');
-    
   } catch (error) {
     console.error('MongoDB connection error:', error);
     if (error.name === 'MongoServerError') {
