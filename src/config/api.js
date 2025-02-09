@@ -1,6 +1,6 @@
 const API_URL = process.env.NODE_ENV === 'production'
-  ? 'https://paralegal-wiki.onrender.com/api'
-  : '/api'; // Usa el proxy en desarrollo
+  ? 'https://paralegal-wiki.onrender.com/api'  // URL de producción
+  : 'http://localhost:5000/api';               // URL de desarrollo
 
 export const authAPI = {
   login: async (credentials) => {
