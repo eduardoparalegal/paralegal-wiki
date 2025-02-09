@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import Loader from '../components/Loader'; // Import the new Loader component
-import { authAPI } from '../api'; // Importa la API
+import Loader from '../components/Loader';
+import { authAPI } from '../config/api';  // Cambia esta línea
 
 const AuthContext = createContext(null);
 
@@ -14,11 +14,7 @@ export const AuthProvider = ({ children }) => {
       try {
         const token = localStorage.getItem('token');
         if (token) {
-          // Validar el token con el backend (opcional)
-          // const response = await authAPI.validateToken(token);
-          // if (response.valid) {
           setUser({ token });
-          // }
         }
       } catch (err) {
         setError(err);

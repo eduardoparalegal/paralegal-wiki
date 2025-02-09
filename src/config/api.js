@@ -1,6 +1,6 @@
 const API_URL = process.env.NODE_ENV === 'production'
-  ? 'https://paralegal-wiki.onrender.com/api'  // URL de producción
-  : 'http://localhost:5000/api';               // URL de desarrollo
+  ? 'https://paralegal-wiki.onrender.com/api'
+  : 'http://localhost:5000/api';
 
 export const authAPI = {
   login: async (credentials) => {
@@ -13,12 +13,10 @@ export const authAPI = {
         body: JSON.stringify(credentials),
       });
 
-      // Verifica si la respuesta es JSON válido
       const text = await response.text();
-      console.log('Respuesta del servidor:', text); // Depura la respuesta
+      console.log('Respuesta del servidor:', text);
 
       if (!response.ok) {
-        // Intenta parsear el error como JSON, si no, usa el texto plano
         let errorMessage = 'Error en el login';
         try {
           const errorData = JSON.parse(text);
@@ -29,7 +27,6 @@ export const authAPI = {
         throw new Error(errorMessage);
       }
 
-      // Intenta parsear la respuesta como JSON
       const data = JSON.parse(text);
       return data;
     } catch (error) {
