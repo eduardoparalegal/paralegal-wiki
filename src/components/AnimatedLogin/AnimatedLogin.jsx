@@ -187,21 +187,36 @@ const AnimatedLogin = () => {
     e.preventDefault();
     setIsLoading(true);
     setError('');
-
+  
     try {
-      const response = await authAPI.login(credentials);
-
-      if (!response.token) {
-        throw new Error('Token not received from server');
+      const response = await fetch(`${API_URL}/auth/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(credentials),
+      });
+  
+      // Verifica si la respuesta es un JSON válido
+      const text = await response.text();
+      console.log('Respuesta del servidor:', text); // Depura la respuesta
+  
+      if (!response.ok) {
+        throw new Error(text || 'Error en el login');
       }
-
-      await login(response.token);
+  
+      const data = JSON.parse(text); // Intenta parsear la respuesta como JSON
+      if (!data.token) {
+        throw new Error('Token no recibido del servidor');
+      }
+  
+      await login(data.token);
       setCredentials({ username: '', password: '' });
       navigate('/home');
-
+  
     } catch (err) {
       console.error('Login error:', err);
-      setError(err.message || 'An error occurred during login. Please try again.');
+      setError(err.message || 'Ocurrió un error durante el inicio de sesión. Inténtalo de nuevo.');
     } finally {
       setIsLoading(false);
     }
