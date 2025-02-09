@@ -20,7 +20,8 @@ const userSchema = new mongoose.Schema({
   password: {
     type: String,
     required: true,
-    minlength: 8
+    minlength: 8,
+    select: false
   },
   createdAt: {
     type: Date,
