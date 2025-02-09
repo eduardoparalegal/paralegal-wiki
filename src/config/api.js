@@ -1,10 +1,50 @@
-// src/config/api.js
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001';
+// === src/config/api.js ===
+const API_URL = process.env.NODE_ENV === 'production'
+  ? 'https://paralegal-wiki.onrender.com/api'  // URL de producción
+  : 'http://localhost:5000/api';               // URL de desarrollo
 
-export const endpoints = {
-  login: `${API_URL}/api/auth/login`,
-  register: `${API_URL}/api/auth/register`,
-  users: `${API_URL}/api/auth/users`
+export const authAPI = {
+  login: async (credentials) => {
+    try {
+      const response = await fetch(`${API_URL}/auth/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(credentials)
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Error en el login');
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Login error:', error);
+      throw error;
+    }
+  },
+
+  register: async (userData) => {
+    try {
+      const response = await fetch(`${API_URL}/auth/register`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(userData)
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Error en el registro');
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Register error:', error);
+      throw error;
+    }
+  }
 };
-
-export default API_URL;

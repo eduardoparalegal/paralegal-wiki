@@ -2,22 +2,10 @@ import React, { useEffect, useRef, useState } from 'react';
 import { gsap } from 'gsap';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { authAPI } from '../../config/api';
 import './AnimatedLogin.css';
 
-// Define API URL with proper fallback and error handling
-const getApiUrl = () => {
-  try {
-    return process.env.REACT_APP_API_URL || 'http://localhost:3000';
-  } catch (error) {
-    console.warn('Failed to load API URL from env, using default:', error);
-    return 'http://localhost:3000';
-  }
-};
-
-const API_URL = getApiUrl();
-
 const AnimatedLogin = () => {
-  // Animation refs with proper initialization
   const canvasRef = useRef(null);
   const headerRef = useRef(null);
   const pointsRef = useRef([]);
@@ -29,7 +17,6 @@ const AnimatedLogin = () => {
   const requestRef = useRef();
   const isInitializedRef = useRef(false);
 
-  // Login state
   const [credentials, setCredentials] = useState({ username: '', password: '' });
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -62,35 +49,33 @@ const AnimatedLogin = () => {
 
     widthRef.current = window.innerWidth;
     heightRef.current = window.innerHeight;
-    targetRef.current = { x: widthRef.current/2, y: heightRef.current/2 };
+    targetRef.current = { x: widthRef.current / 2, y: heightRef.current / 2 };
 
     headerRef.current.style.height = `${heightRef.current}px`;
     canvasRef.current.width = widthRef.current;
     canvasRef.current.height = heightRef.current;
     ctxRef.current = canvasRef.current.getContext('2d');
 
-    // Create points with proper initialization
     pointsRef.current = [];
-    const stepX = widthRef.current/20;
-    const stepY = heightRef.current/20;
+    const stepX = widthRef.current / 20;
+    const stepY = heightRef.current / 20;
 
-    for(let x = 0; x < widthRef.current; x += stepX) {
-      for(let y = 0; y < heightRef.current; y += stepY) {
-        const px = x + Math.random()*stepX;
-        const py = y + Math.random()*stepY;
-        const p = {x: px, originX: px, y: py, originY: py };
+    for (let x = 0; x < widthRef.current; x += stepX) {
+      for (let y = 0; y < heightRef.current; y += stepY) {
+        const px = x + Math.random() * stepX;
+        const py = y + Math.random() * stepY;
+        const p = { x: px, originX: px, y: py, originY: py };
         pointsRef.current.push(p);
       }
     }
 
-    // Find closest points with improved efficiency
     pointsRef.current.forEach(point => {
       const closest = pointsRef.current
         .filter(p => p !== point)
         .sort((a, b) => getDistance(point, a) - getDistance(point, b))
         .slice(0, 5);
       point.closest = closest;
-      point.circle = new Circle(point, 2+Math.random()*2);
+      point.circle = new Circle(point, 2 + Math.random() * 2);
     });
 
     isInitializedRef.current = true;
@@ -110,14 +95,13 @@ const AnimatedLogin = () => {
 
   const resize = () => {
     if (!headerRef.current || !canvasRef.current) return;
-    
+
     widthRef.current = window.innerWidth;
     heightRef.current = window.innerHeight;
     headerRef.current.style.height = `${heightRef.current}px`;
     canvasRef.current.width = widthRef.current;
     canvasRef.current.height = heightRef.current;
-    
-    // Reinitialize points on resize
+
     isInitializedRef.current = false;
     initHeader();
   };
@@ -137,8 +121,8 @@ const AnimatedLogin = () => {
     if (!p) return;
     gsap.to(p, {
       duration: 1 + Math.random(),
-      x: p.originX - 50 + Math.random()*100,
-      y: p.originY - 50 + Math.random()*100,
+      x: p.originX - 50 + Math.random() * 100,
+      y: p.originY - 50 + Math.random() * 100,
       ease: "circ.inOut",
       onComplete: () => shiftPoint(p)
     });
@@ -146,12 +130,12 @@ const AnimatedLogin = () => {
 
   const animate = () => {
     if (!animateHeaderRef.current || !ctxRef.current) return;
-    
+
     ctxRef.current.clearRect(0, 0, widthRef.current, heightRef.current);
-    
+
     pointsRef.current.forEach(point => {
       const distance = getDistance(targetRef.current, point);
-      
+
       if (distance < 4000) {
         point.active = 0.3;
         point.circle.active = 0.6;
@@ -165,30 +149,30 @@ const AnimatedLogin = () => {
         point.active = 0;
         point.circle.active = 0;
       }
-      
+
       drawLines(point);
       point.circle.draw();
     });
-    
+
     requestRef.current = requestAnimationFrame(animate);
   };
 
   useEffect(() => {
     try {
       initHeader();
-      
+
       if (!('ontouchstart' in window)) {
         window.addEventListener('mousemove', mouseMove);
       }
       window.addEventListener('scroll', scrollCheck);
       window.addEventListener('resize', resize);
-    
+
       animate();
       pointsRef.current.forEach(point => shiftPoint(point));
     } catch (error) {
       console.error('Animation initialization error:', error);
     }
-  
+
     return () => {
       window.removeEventListener('mousemove', mouseMove);
       window.removeEventListener('scroll', scrollCheck);
@@ -205,30 +189,16 @@ const AnimatedLogin = () => {
     setError('');
 
     try {
-      const response = await fetch(`${API_URL}/auth/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        },
-        credentials: 'include',
-        body: JSON.stringify(credentials),
-      });
+      const response = await authAPI.login(credentials);
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Login failed');
-      }
-
-      if (!data.token) {
+      if (!response.token) {
         throw new Error('Token not received from server');
       }
 
-      await login(data.token);
+      await login(response.token);
       setCredentials({ username: '', password: '' });
       navigate('/home');
-      
+
     } catch (err) {
       console.error('Login error:', err);
       setError(err.message || 'An error occurred during login. Please try again.');
