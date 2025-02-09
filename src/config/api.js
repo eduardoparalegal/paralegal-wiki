@@ -10,15 +10,28 @@ export const authAPI = {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(credentials)
+        body: JSON.stringify(credentials),
       });
 
+      // Verifica si la respuesta es JSON válido
+      const text = await response.text();
+      console.log('Respuesta del servidor:', text); // Depura la respuesta
+
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Error en el login');
+        // Intenta parsear el error como JSON, si no, usa el texto plano
+        let errorMessage = 'Error en el login';
+        try {
+          const errorData = JSON.parse(text);
+          errorMessage = errorData.message || errorMessage;
+        } catch (e) {
+          errorMessage = text || errorMessage;
+        }
+        throw new Error(errorMessage);
       }
 
-      return await response.json();
+      // Intenta parsear la respuesta como JSON
+      const data = JSON.parse(text);
+      return data;
     } catch (error) {
       console.error('Login error:', error);
       throw error;
@@ -32,7 +45,7 @@ export const authAPI = {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(userData)
+        body: JSON.stringify(userData),
       });
 
       if (!response.ok) {
@@ -45,5 +58,5 @@ export const authAPI = {
       console.error('Register error:', error);
       throw error;
     }
-  }
+  },
 };

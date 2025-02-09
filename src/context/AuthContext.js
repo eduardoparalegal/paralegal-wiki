@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import Loader from '../components/Loader'; // Import the new Loader component
+import { authAPI } from '../api'; // Importa la API
 
 const AuthContext = createContext(null);
 
@@ -13,10 +14,10 @@ export const AuthProvider = ({ children }) => {
       try {
         const token = localStorage.getItem('token');
         if (token) {
-          // Optional: Validate token with backend
-          // const response = await validateTokenWithBackend(token);
+          // Validar el token con el backend (opcional)
+          // const response = await authAPI.validateToken(token);
           // if (response.valid) {
-            setUser({ token });
+          setUser({ token });
           // }
         }
       } catch (err) {
@@ -32,11 +33,9 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (credentials) => {
     try {
-      // Replace with actual login API call
-      // const response = await loginAPI(credentials);
-      // const { token } = response;
-      const token = 'mock-token'; // Simulated token
-      
+      const response = await authAPI.login(credentials);
+      const { token } = response;
+
       localStorage.setItem('token', token);
       setUser({ token });
       setError(null);
