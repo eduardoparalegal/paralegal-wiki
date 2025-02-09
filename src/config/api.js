@@ -9,28 +9,25 @@ export const authAPI = {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Accept': 'application/json'  // Agregamos este header
         },
         body: JSON.stringify(credentials),
+        credentials: 'include'  // Agregamos esto para manejar cookies
       });
 
-      const text = await response.text();
-      console.log('Respuesta del servidor:', text);
-
+      // Primero verificamos si la respuesta es OK
       if (!response.ok) {
-        let errorMessage = 'Error en el login';
-        try {
-          const errorData = JSON.parse(text);
-          errorMessage = errorData.message || errorMessage;
-        } catch (e) {
-          errorMessage = text || errorMessage;
-        }
-        throw new Error(errorMessage);
+        throw new Error(`Error HTTP: ${response.status}`);
       }
 
-      const data = JSON.parse(text);
+      // Intentamos parsear la respuesta
+      const data = await response.json();
       return data;
     } catch (error) {
-      console.error('Login error:', error);
+      console.error('Login error details:', error);
+      if (error.message.includes('JSON')) {
+        throw new Error('Error de conexión con el servidor. Por favor, intenta más tarde.');
+      }
       throw error;
     }
   },
@@ -41,13 +38,15 @@ export const authAPI = {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Accept': 'application/json'
         },
         body: JSON.stringify(userData),
+        credentials: 'include'
       });
 
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Error en el registro');
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Error en el registro');
       }
 
       return await response.json();
@@ -55,5 +54,5 @@ export const authAPI = {
       console.error('Register error:', error);
       throw error;
     }
-  },
+  }
 };

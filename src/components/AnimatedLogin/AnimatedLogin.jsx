@@ -4,6 +4,18 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import './AnimatedLogin.css';
 
+
+const onSubmit = async (formData) => {
+  try {
+    console.log('Intentando login con:', formData); // Para ver qué datos se están enviando
+    const response = await authAPI.login(formData);
+    console.log('Respuesta del servidor:', response); // Para ver la respuesta
+    // ... resto de tu código
+  } catch (error) {
+    console.error('Error completo:', error);
+    // ... manejo del error
+  }
+};
 // Define API_URL
 const API_URL = process.env.NODE_ENV === 'production'
   ? 'https://paralegal-wiki.onrender.com/api'  // URL de producción
