@@ -2,6 +2,8 @@ const API_URL = process.env.NODE_ENV === 'production'
   ? 'https://paralegal-wiki.onrender.com/api'
   : 'http://localhost:5000/api';
 
+
+  
 export const authAPI = {
   login: async (credentials) => {
     try {
