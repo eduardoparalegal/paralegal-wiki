@@ -2,14 +2,12 @@ import React, { useEffect, useRef, useState } from 'react';
 import { gsap } from 'gsap';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { authAPI } from '../../config/api';
 import './AnimatedLogin.css';
 
 // Define API_URL
 const API_URL = process.env.NODE_ENV === 'production'
   ? 'https://paralegal-wiki.onrender.com/api'  // URL de producción
   : 'http://localhost:5000/api';               // URL de desarrollo
-
 
 const AnimatedLogin = () => {
   const canvasRef = useRef(null);
@@ -193,7 +191,7 @@ const AnimatedLogin = () => {
     e.preventDefault();
     setIsLoading(true);
     setError('');
-  
+
     try {
       const response = await fetch(`${API_URL}/auth/login`, {
         method: 'POST',
@@ -202,24 +200,24 @@ const AnimatedLogin = () => {
         },
         body: JSON.stringify(credentials),
       });
-  
+
       // Verifica si la respuesta es un JSON válido
       const text = await response.text();
       console.log('Respuesta del servidor:', text); // Depura la respuesta
-  
+
       if (!response.ok) {
         throw new Error(text || 'Error en el login');
       }
-  
+
       const data = JSON.parse(text); // Intenta parsear la respuesta como JSON
       if (!data.token) {
         throw new Error('Token no recibido del servidor');
       }
-  
+
       await login(data.token);
       setCredentials({ username: '', password: '' });
       navigate('/home');
-  
+
     } catch (err) {
       console.error('Login error:', err);
       setError(err.message || 'Ocurrió un error durante el inicio de sesión. Inténtalo de nuevo.');
