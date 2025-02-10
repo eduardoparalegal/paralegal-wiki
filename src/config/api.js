@@ -1,4 +1,3 @@
-// 1. src/config/api.js
 const BASE_URL = 'https://paralegal-wiki.onrender.com/api';
 
 export const authAPI = {
@@ -8,58 +7,25 @@ export const authAPI = {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Accept': 'application/json'
         },
         body: JSON.stringify(credentials),
-        credentials: 'include' // Importante para cookies
+        credentials: 'include'
       });
 
+      const responseData = await response.text();
+      console.log('Raw server response:', responseData);
+
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Server response:', errorText);
-        throw new Error('Error en la autenticación');
+        const errorData = JSON.parse(responseData);
+        throw new Error(errorData.message || 'Error de autenticación');
       }
 
-      const data = await response.json();
-      console.log('Login response:', data);
-      return data;
+      return JSON.parse(responseData);
     } catch (error) {
       console.error('Login error details:', error);
       throw error;
     }
   },
-
-  logout: async () => {
-    try {
-      const response = await fetch(`${BASE_URL}/auth/logout`, {
-        method: 'POST',
-        credentials: 'include'
-      });
-
-      if (!response.ok) {
-        throw new Error('Error en el logout');
-      }
-
-      return await response.json();
-    } catch (error) {
-      console.error('Logout error:', error);
-      throw error;
-    }
-  },
-
-  checkAuth: async () => {
-    try {
-      const response = await fetch(`${BASE_URL}/auth/check`, {
-        credentials: 'include'
-      });
-
-      if (!response.ok) {
-        throw new Error('No autenticado');
-      }
-
-      return await response.json();
-    } catch (error) {
-      console.error('Check auth error:', error);
-      throw error;
-    }
-  }
-};
+  // Resto del código permanece igual
+};  

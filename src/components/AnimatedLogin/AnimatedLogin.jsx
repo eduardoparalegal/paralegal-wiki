@@ -9,7 +9,7 @@ const AnimatedLogin = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [credentials, setCredentials] = useState({
-    email: '',
+    username: '', // Cambiado de email a username
     password: ''
   });
 
@@ -28,8 +28,15 @@ const AnimatedLogin = () => {
 
     try {
       console.log('Intentando login con:', credentials);
-      await login(credentials);
-      navigate('/dashboard'); // O la ruta que desees después del login
+      const response = await login(credentials);
+      
+      if (response.token) {
+        // Almacenar token y redirigir
+        localStorage.setItem('token', response.token);
+        navigate('/dashboard');
+      } else {
+        throw new Error(response.message || 'Error al iniciar sesión');
+      }
     } catch (err) {
       console.error('Error de login:', err);
       setError(err.message || 'Error al iniciar sesión');
@@ -56,15 +63,15 @@ const AnimatedLogin = () => {
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="rounded-md shadow-sm -space-y-px">
             <div>
-              <label htmlFor="email" className="sr-only">Email</label>
+              <label htmlFor="username" className="sr-only">Nombre de usuario</label>
               <input
-                id="email"
-                name="email"
-                type="email"
+                id="username"
+                name="username"
+                type="text"
                 required
                 className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                placeholder="Email"
-                value={credentials.email}
+                placeholder="Nombre de usuario"
+                value={credentials.username}
                 onChange={handleChange}
               />
             </div>
