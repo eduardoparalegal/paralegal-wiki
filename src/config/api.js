@@ -1,60 +1,37 @@
-const API_URL = process.env.NODE_ENV === 'production'
-  ? 'https://paralegal-wiki.onrender.com/api'
-  : 'http://localhost:5000/api';
+login: async (credentials) => {
+  try {
+    const response = await fetch(`${API_URL}/auth/login`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify(credentials),
+      credentials: 'include'
+    });
 
-
-  
-export const authAPI = {
-  login: async (credentials) => {
-    try {
-      const response = await fetch(`${API_URL}/auth/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'  // Agregamos este header
-        },
-        body: JSON.stringify(credentials),
-        credentials: 'include'  // Agregamos esto para manejar cookies
-      });
-
-      // Primero verificamos si la respuesta es OK
-      if (!response.ok) {
-        throw new Error(`Error HTTP: ${response.status}`);
-      }
-
-      // Intentamos parsear la respuesta
-      const data = await response.json();
-      return data;
-    } catch (error) {
-      console.error('Login error details:', error);
-      if (error.message.includes('JSON')) {
-        throw new Error('Error de conexión con el servidor. Por favor, intenta más tarde.');
-      }
-      throw error;
+    // Si la respuesta no es JSON, capturamos el texto primero
+    const contentType = response.headers.get("content-type");
+    if (!contentType || !contentType.includes("application/json")) {
+      const text = await response.text();
+      throw new Error(`El servidor respondió con un formato incorrecto: ${text.substring(0, 100)}...`);
     }
-  },
 
-  register: async (userData) => {
-    try {
-      const response = await fetch(`${API_URL}/auth/register`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        },
-        body: JSON.stringify(userData),
-        credentials: 'include'
-      });
+    const data = await response.json();
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Error en el registro');
-      }
-
-      return await response.json();
-    } catch (error) {
-      console.error('Register error:', error);
-      throw error;
+    if (!response.ok) {
+      throw new Error(data.message || `Error ${response.status}: ${response.statusText}`);
     }
+
+    if (!data.token) {
+      throw new Error('El servidor no devolvió un token válido');
+    }
+
+    return data;
+  } catch (error) {
+    if (error instanceof SyntaxError) {
+      throw new Error('Error al procesar la respuesta del servidor');
+    }
+    throw error;
   }
-};
+}
