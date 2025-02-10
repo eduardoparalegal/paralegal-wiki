@@ -19,22 +19,19 @@ app.use(helmet());
 app.use(mongoSanitize());
 app.use(morgan('dev'));
 app.use(express.json({ limit: '10kb' }));
-
+app.use((req, res, next) => {
+  res.header('Content-Type', 'application/json');
+  next();
+});
 // CORS configuration más flexible
 app.use(cors({
-  origin: function(origin, callback){
-    // Permitir solicitudes sin origen (como desde Postman o llamadas del servidor)
-    if(!origin) return callback(null, true);
-    
-    const allowedOrigins = config.CORS_ORIGINS;
-    if (allowedOrigins.indexOf(origin) !== -1) {
-      callback(null, true);
-    } else {
-      callback(new Error('Origen no permitido por CORS'));
-    }
-  },
+  origin: [
+    'http://localhost:3000',
+    'http://localhost:5173',
+    'https://paralegal-wiki.onrender.com'
+  ],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
   credentials: true
 }));
 

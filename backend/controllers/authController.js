@@ -74,6 +74,12 @@ exports.login = async (req, res) => {
     });
   }
 };
+res.set('Content-Type', 'application/json');
+res.status(200).json({ 
+  token, 
+  message: 'Inicio de sesión exitoso',
+  userId: user._id 
+});
 
 // Añade aquí otros métodos de controlador si los tienes
 exports.register = async (req, res) => {
