@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { authAPI } from '../config/api';
-import Loader from '../Loader'; // Ruta corregida
+import Loader from '../components/Loader'; // Ruta corregida
 
 const AuthContext = createContext(null);
 
