@@ -1,71 +1,59 @@
+// 2. src/context/AuthContext.js
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import Loader from '../components/Loader';
 import { authAPI } from '../config/api';
+import Loader from '../ui/Loader';
 
-// Create context with a default value
-const AuthContext = createContext({
-  user: null,
-  login: async () => {},
-  logout: () => {},
-  loading: true,
-  error: null
-});
+const AuthContext = createContext(null);
 
-// Custom hook to use auth context
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error('useAuth debe usarse dentro de un AuthProvider');
   }
   return context;
 };
 
-// Auth Provider component
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    const checkAuth = async () => {
+    const checkAuthentication = async () => {
       try {
-        const token = localStorage.getItem('token');
-        if (token) {
-          setUser({ token });
-        }
+        const userData = await authAPI.checkAuth();
+        setUser(userData);
       } catch (err) {
-        setError(err);
-        localStorage.removeItem('token');
+        console.error('Error checking auth:', err);
+        setUser(null);
       } finally {
         setLoading(false);
       }
     };
 
-    checkAuth();
+    checkAuthentication();
   }, []);
 
   const login = async (credentials) => {
     try {
-      const response = await authAPI.login(credentials);
-      const { token } = response;
-
-      if (!token) {
-        throw new Error('Token no recibido del servidor');
-      }
-
-      localStorage.setItem('token', token);
-      setUser({ token });
       setError(null);
+      const response = await authAPI.login(credentials);
+      setUser(response.user);
       return response;
     } catch (err) {
-      setError(err);
+      setError(err.message);
       throw err;
     }
   };
 
-  const logout = () => {
-    localStorage.removeItem('token');
-    setUser(null);
+  const logout = async () => {
+    try {
+      await authAPI.logout();
+      setUser(null);
+    } catch (err) {
+      console.error('Logout error:', err);
+      throw err;
+    }
   };
 
   if (loading) {
@@ -86,6 +74,3 @@ export const AuthProvider = ({ children }) => {
     </AuthContext.Provider>
   );
 };
-
-// Export both the provider and the hook
-export { AuthContext };

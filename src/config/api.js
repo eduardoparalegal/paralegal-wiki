@@ -1,27 +1,26 @@
-// api.js
-const API_URL = process.env.NODE_ENV === 'production'
-  ? 'https://paralegal-wiki.onrender.com/api'
-  : 'http://localhost:5000/api';
+// 1. src/config/api.js
+const BASE_URL = 'https://paralegal-wiki.onrender.com/api';
 
 export const authAPI = {
   login: async (credentials) => {
     try {
-      const response = await fetch(`${API_URL}/auth/login`, {
+      const response = await fetch(`${BASE_URL}/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Accept': 'application/json'
         },
         body: JSON.stringify(credentials),
-        credentials: 'include'
+        credentials: 'include' // Importante para cookies
       });
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => null);
-        throw new Error(errorData?.message || `Error HTTP: ${response.status}`);
+        const errorText = await response.text();
+        console.error('Server response:', errorText);
+        throw new Error('Error en la autenticación');
       }
 
       const data = await response.json();
+      console.log('Login response:', data);
       return data;
     } catch (error) {
       console.error('Login error details:', error);
@@ -29,26 +28,37 @@ export const authAPI = {
     }
   },
 
-  register: async (userData) => {
+  logout: async () => {
     try {
-      const response = await fetch(`${API_URL}/auth/register`, {
+      const response = await fetch(`${BASE_URL}/auth/logout`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        },
-        body: JSON.stringify(userData),
         credentials: 'include'
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Error en el registro');
+        throw new Error('Error en el logout');
       }
 
       return await response.json();
     } catch (error) {
-      console.error('Register error:', error);
+      console.error('Logout error:', error);
+      throw error;
+    }
+  },
+
+  checkAuth: async () => {
+    try {
+      const response = await fetch(`${BASE_URL}/auth/check`, {
+        credentials: 'include'
+      });
+
+      if (!response.ok) {
+        throw new Error('No autenticado');
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Check auth error:', error);
       throw error;
     }
   }
