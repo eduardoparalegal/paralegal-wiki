@@ -18,12 +18,15 @@ connectDB();
 app.use(helmet());
 app.use(mongoSanitize());
 app.use(morgan('dev'));
+
+// Explicit JSON parsing and type setting BEFORE other middlewares
 app.use(express.json({ limit: '10kb' }));
 app.use((req, res, next) => {
-  res.header('Content-Type', 'application/json');
+  res.setHeader('Content-Type', 'application/json');
   next();
 });
-// CORS configuration más flexible
+
+// CORS configuration
 app.use(cors({
   origin: [
     'http://localhost:3000',
@@ -35,18 +38,18 @@ app.use(cors({
   credentials: true
 }));
 
-// Rate limiter más permisivo
+// Rate limiter
 const loginLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutos
-  max: 10, // Aumentado de 5 a 10 intentos
+  windowMs: 15 * 60 * 1000, 
+  max: 10, 
   message: 'Demasiados intentos de inicio de sesión, por favor intenta de nuevo más tarde'
 });
 
-// Rutas
+// Routes
 app.use('/api/auth/login', loginLimiter);
 app.use('/api/auth', authRoutes);
 
-// Ruta de verificación de salud
+// Health check route
 app.get('/health', (req, res) => {
   res.status(200).json({ 
     status: 'ok', 
@@ -54,7 +57,7 @@ app.get('/health', (req, res) => {
   });
 });
 
-// Middleware de manejo de errores
+// Global error handler
 app.use((err, req, res, next) => {
   console.error('Error global:', err);
   res.status(500).json({ 
@@ -68,7 +71,7 @@ const server = app.listen(PORT, () => {
   console.log(`Servidor ejecutándose en puerto ${PORT}`);
 });
 
-// Manejo de errores no capturados
+// Unhandled promise rejection handler
 process.on('unhandledRejection', (reason, promise) => {
   console.error('Rechazo de promesa no manejado:', reason);
   server.close(() => process.exit(1));

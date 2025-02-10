@@ -61,27 +61,20 @@ exports.login = async (req, res) => {
     const token = jwt.sign({ userId: user._id }, config.JWT_SECRET, { expiresIn: '24h' });
     console.log('Token generated successfully');
     
-    res.status(200).json({ 
+    return res.status(200).json({ 
       token, 
       message: 'Inicio de sesión exitoso',
       userId: user._id
     });
   } catch (error) {
     console.error('Login error:', error);
-    res.status(500).json({ 
+    return res.status(500).json({ 
       message: 'Error durante el inicio de sesión',
       error: error.message 
     });
   }
 };
-res.set('Content-Type', 'application/json');
-res.status(200).json({ 
-  token, 
-  message: 'Inicio de sesión exitoso',
-  userId: user._id 
-});
 
-// Añade aquí otros métodos de controlador si los tienes
 exports.register = async (req, res) => {
   // Implementación del registro
 };

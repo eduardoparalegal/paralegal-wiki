@@ -1,4 +1,4 @@
-const BASE_URL = 'https://paralegal-wiki.onrender.com/api';
+const BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
 export const authAPI = {
   login: async (credentials) => {
@@ -16,16 +16,15 @@ export const authAPI = {
         credentials: 'include'
       });
 
-      // Log full response for debugging
       const responseText = await response.text();
       console.log('Raw server response:', responseText);
 
-      // Verificar si la respuesta es HTML
+      // Early check for potential HTML response
       if (responseText.includes('<!DOCTYPE') || responseText.includes('<html>')) {
+        console.error('Received HTML instead of JSON');
         throw new Error('Respuesta del servidor no es JSON válido');
       }
 
-      // Parsear la respuesta
       let data;
       try {
         data = JSON.parse(responseText);
