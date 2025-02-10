@@ -1,7 +1,6 @@
-// 2. src/context/AuthContext.js
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { authAPI } from '../config/api';
-import Loader from '../ui/Loader';
+import Loader from '../Loader'; // Ruta corregida
 
 const AuthContext = createContext(null);
 
@@ -60,17 +59,19 @@ export const AuthProvider = ({ children }) => {
     return <Loader />;
   }
 
-  const value = {
-    user,
-    login,
-    logout,
-    loading,
-    error
-  };
-
   return (
-    <AuthContext.Provider value={value}>
+    <AuthContext.Provider 
+      value={{
+        user,
+        login,
+        logout,
+        loading,
+        error
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
 };
+
+export { AuthContext };
