@@ -9,23 +9,105 @@ export const authAPI = {
           'Content-Type': 'application/json',
           'Accept': 'application/json'
         },
-        body: JSON.stringify(credentials),
+        body: JSON.stringify({
+          username: credentials.username, 
+          password: credentials.password
+        }),
         credentials: 'include'
       });
 
-      const responseData = await response.text();
-      console.log('Raw server response:', responseData);
+      // Log full response for debugging
+      const responseText = await response.text();
+      console.log('Raw server response:', responseText);
 
-      if (!response.ok) {
-        const errorData = JSON.parse(responseData);
-        throw new Error(errorData.message || 'Error de autenticación');
+      // Verificar si la respuesta es HTML
+      if (responseText.includes('<!DOCTYPE') || responseText.includes('<html>')) {
+        throw new Error('Respuesta del servidor no es JSON válido');
       }
 
-      return JSON.parse(responseData);
+      // Parsear la respuesta
+      let data;
+      try {
+        data = JSON.parse(responseText);
+      } catch (parseError) {
+        console.error('JSON parsing error:', parseError);
+        throw new Error('No se pudo parsear la respuesta del servidor');
+      }
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Error de autenticación');
+      }
+
+      return data;
     } catch (error) {
       console.error('Login error details:', error);
       throw error;
     }
   },
-  // Resto del código permanece igual
-};  
+
+  logout: async () => {
+    try {
+      const response = await fetch(`${BASE_URL}/auth/logout`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        credentials: 'include'
+      });
+
+      const responseText = await response.text();
+      console.log('Logout raw response:', responseText);
+
+      let data;
+      try {
+        data = JSON.parse(responseText);
+      } catch (parseError) {
+        console.error('Logout JSON parsing error:', parseError);
+        throw new Error('No se pudo parsear la respuesta del logout');
+      }
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Error en el logout');
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Logout error:', error);
+      throw error;
+    }
+  },
+
+  checkAuth: async () => {
+    try {
+      const response = await fetch(`${BASE_URL}/auth/check`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        credentials: 'include'
+      });
+
+      const responseText = await response.text();
+      console.log('Check auth raw response:', responseText);
+
+      let data;
+      try {
+        data = JSON.parse(responseText);
+      } catch (parseError) {
+        console.error('Check auth JSON parsing error:', parseError);
+        throw new Error('No se pudo parsear la respuesta de autenticación');
+      }
+
+      if (!response.ok) {
+        throw new Error(data.message || 'No autenticado');
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Check auth error:', error);
+      throw error;
+    }
+  }
+};

@@ -1,3 +1,25 @@
+const User = require('../models/User');
+const jwt = require('jsonwebtoken');
+const config = require('../config/config');
+
+const sanitizeInput = (input) => {
+  if (typeof input !== 'string') {
+    return '';
+  }
+  return input
+    .replace(/[\$\{\}\[\]\(\)]|(\$eq)|(\$ne)|(\$gt)|(\$lt)|(\$gte)|(\$lte)|(\$in)|(\$nin)|(\$or)|(\$and)|(\$not)|(\$nor)|(\$exists)/g, '')
+    .trim();
+};
+
+const validateRequiredFields = (fields) => {
+  return Object.entries(fields).every(([key, value]) => {
+    return value !== undefined && 
+           value !== null && 
+           value.toString().trim() !== '' &&
+           typeof value === 'string';
+  });
+};
+
 exports.login = async (req, res) => {
   try {
     const { username, password } = req.body;
@@ -51,4 +73,9 @@ exports.login = async (req, res) => {
       error: error.message 
     });
   }
+};
+
+// Añade aquí otros métodos de controlador si los tienes
+exports.register = async (req, res) => {
+  // Implementación del registro
 };

@@ -20,46 +20,61 @@ app.use(mongoSanitize());
 app.use(morgan('dev'));
 app.use(express.json({ limit: '10kb' }));
 
-// CORS configuration
+// CORS configuration más flexible
 app.use(cors({
-  origin: (origin, callback) => {
+  origin: function(origin, callback){
+    // Permitir solicitudes sin origen (como desde Postman o llamadas del servidor)
+    if(!origin) return callback(null, true);
+    
     const allowedOrigins = config.CORS_ORIGINS;
-    if (!origin || allowedOrigins.includes(origin)) {
+    if (allowedOrigins.indexOf(origin) !== -1) {
       callback(null, true);
     } else {
-      callback(new Error('Not allowed by CORS'));
+      callback(new Error('Origen no permitido por CORS'));
     }
   },
-  credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
 }));
 
-// Rate limiter
+// Rate limiter más permisivo
 const loginLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 5,
-  message: 'Too many login attempts, please try again later'
+  windowMs: 15 * 60 * 1000, // 15 minutos
+  max: 10, // Aumentado de 5 a 10 intentos
+  message: 'Demasiados intentos de inicio de sesión, por favor intenta de nuevo más tarde'
 });
 
-// Routes
+// Rutas
 app.use('/api/auth/login', loginLimiter);
 app.use('/api/auth', authRoutes);
 
-// Health check route
+// Ruta de verificación de salud
 app.get('/health', (req, res) => {
-  res.status(200).json({ status: 'ok' });
+  res.status(200).json({ 
+    status: 'ok', 
+    timestamp: new Date().toISOString() 
+  });
 });
 
-// Error handling middleware
+// Middleware de manejo de errores
 app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({ message: 'Something went wrong!', error: err.message });
+  console.error('Error global:', err);
+  res.status(500).json({ 
+    message: 'Ocurrió un error en el servidor', 
+    error: err.message 
+  });
 });
 
-const PORT = config.PORT;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+const PORT = config.PORT || 5000;
+const server = app.listen(PORT, () => {
+  console.log(`Servidor ejecutándose en puerto ${PORT}`);
+});
+
+// Manejo de errores no capturados
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Rechazo de promesa no manejado:', reason);
+  server.close(() => process.exit(1));
 });
 
 module.exports = app;
