@@ -1,5 +1,4 @@
 // src/components/AnimatedLogin/AnimatedLogin.jsx
-
 import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -28,9 +27,17 @@ const AnimatedLogin = () => {
     setError('');
 
     try {
-      const response = await login(credentials);
-      if (response.token) {
+      // Validar que los campos no estén vacíos
+      if (!credentials.username.trim() || !credentials.password.trim()) {
+        throw new Error('Por favor complete todos los campos');
+      }
+
+      const result = await login(credentials);
+      if (result && result.token) {
+        localStorage.setItem('token', result.token);
         navigate('/dashboard');
+      } else {
+        throw new Error('No se recibió un token válido');
       }
     } catch (err) {
       console.error('Error de login:', err);
