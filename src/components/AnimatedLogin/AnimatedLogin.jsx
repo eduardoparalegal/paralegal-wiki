@@ -1,4 +1,5 @@
-// 3. src/components/AnimatedLogin/AnimatedLogin.jsx
+// src/components/AnimatedLogin/AnimatedLogin.jsx
+
 import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -9,7 +10,7 @@ const AnimatedLogin = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [credentials, setCredentials] = useState({
-    username: '', // Cambiado de email a username
+    username: '',
     password: ''
   });
 
@@ -27,15 +28,9 @@ const AnimatedLogin = () => {
     setError('');
 
     try {
-      console.log('Intentando login con:', credentials);
       const response = await login(credentials);
-      
       if (response.token) {
-        // Almacenar token y redirigir
-        localStorage.setItem('token', response.token);
         navigate('/dashboard');
-      } else {
-        throw new Error(response.message || 'Error al iniciar sesión');
       }
     } catch (err) {
       console.error('Error de login:', err);
@@ -46,10 +41,10 @@ const AnimatedLogin = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
         <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900 dark:text-white">
             Iniciar Sesión
           </h2>
         </div>
@@ -69,7 +64,7 @@ const AnimatedLogin = () => {
                 name="username"
                 type="text"
                 required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white"
                 placeholder="Nombre de usuario"
                 value={credentials.username}
                 onChange={handleChange}
@@ -82,7 +77,7 @@ const AnimatedLogin = () => {
                 name="password"
                 type="password"
                 required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white"
                 placeholder="Contraseña"
                 value={credentials.password}
                 onChange={handleChange}

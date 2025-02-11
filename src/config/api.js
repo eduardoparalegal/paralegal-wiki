@@ -1,52 +1,39 @@
-const BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+// src/config/api.js
+
+const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 export const authAPI = {
   login: async (credentials) => {
     try {
-      const response = await fetch(`${BASE_URL}/auth/login`, {
+      const response = await fetch(`${BASE_URL}/api/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json'
         },
         body: JSON.stringify({
-          username: credentials.username, 
+          username: credentials.username,
           password: credentials.password
         }),
         credentials: 'include'
       });
 
-      const responseText = await response.text();
-      console.log('Raw server response:', responseText);
-
-      // Early check for potential HTML response
-      if (responseText.includes('<!DOCTYPE') || responseText.includes('<html>')) {
-        console.error('Received HTML instead of JSON');
-        throw new Error('Respuesta del servidor no es JSON válido');
-      }
-
-      let data;
-      try {
-        data = JSON.parse(responseText);
-      } catch (parseError) {
-        console.error('JSON parsing error:', parseError);
-        throw new Error('No se pudo parsear la respuesta del servidor');
-      }
-
       if (!response.ok) {
+        const data = await response.json();
         throw new Error(data.message || 'Error de autenticación');
       }
 
+      const data = await response.json();
       return data;
     } catch (error) {
-      console.error('Login error details:', error);
+      console.error('Login error:', error);
       throw error;
     }
   },
 
   logout: async () => {
     try {
-      const response = await fetch(`${BASE_URL}/auth/logout`, {
+      const response = await fetch(`${BASE_URL}/api/auth/logout`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -55,21 +42,12 @@ export const authAPI = {
         credentials: 'include'
       });
 
-      const responseText = await response.text();
-      console.log('Logout raw response:', responseText);
-
-      let data;
-      try {
-        data = JSON.parse(responseText);
-      } catch (parseError) {
-        console.error('Logout JSON parsing error:', parseError);
-        throw new Error('No se pudo parsear la respuesta del logout');
-      }
-
       if (!response.ok) {
+        const data = await response.json();
         throw new Error(data.message || 'Error en el logout');
       }
 
+      const data = await response.json();
       return data;
     } catch (error) {
       console.error('Logout error:', error);
@@ -79,30 +57,22 @@ export const authAPI = {
 
   checkAuth: async () => {
     try {
-      const response = await fetch(`${BASE_URL}/auth/check`, {
+      const response = await fetch(`${BASE_URL}/api/auth/check`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-          'Accept': 'application/json'
+          'Accept': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
         },
         credentials: 'include'
       });
 
-      const responseText = await response.text();
-      console.log('Check auth raw response:', responseText);
-
-      let data;
-      try {
-        data = JSON.parse(responseText);
-      } catch (parseError) {
-        console.error('Check auth JSON parsing error:', parseError);
-        throw new Error('No se pudo parsear la respuesta de autenticación');
-      }
-
       if (!response.ok) {
+        const data = await response.json();
         throw new Error(data.message || 'No autenticado');
       }
 
+      const data = await response.json();
       return data;
     } catch (error) {
       console.error('Check auth error:', error);

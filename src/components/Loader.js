@@ -1,16 +1,11 @@
-import React from 'react';
-import './Loader.css';  // Importamos los estilos específicos
+// src/components/Loader.jsx
 
-const Loader = () => {
+import React from 'react';
+
+export const Loader = () => {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-      <div className="loader-ball">
-        <div className="wave-container">
-          <div className="wave"></div>
-        </div>
-      </div>
+    <div className="flex justify-center items-center min-h-screen">
+      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500"></div>
     </div>
   );
 };
-
-export default Loader;

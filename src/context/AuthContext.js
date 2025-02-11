@@ -1,6 +1,8 @@
+// src/context/AuthContext.jsx
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { authAPI } from '../config/api';
-import Loader from '../components/Loader'; // Ruta corregida
+import { Loader } from '../components/Loader';
 
 const AuthContext = createContext(null);
 
@@ -18,12 +20,19 @@ export const AuthProvider = ({ children }) => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      setLoading(false);
+      return;
+    }
+
     const checkAuthentication = async () => {
       try {
         const userData = await authAPI.checkAuth();
-        setUser(userData);
+        setUser(userData.user);
       } catch (err) {
         console.error('Error checking auth:', err);
+        localStorage.removeItem('token');
         setUser(null);
       } finally {
         setLoading(false);
@@ -37,7 +46,10 @@ export const AuthProvider = ({ children }) => {
     try {
       setError(null);
       const response = await authAPI.login(credentials);
-      setUser(response.user);
+      if (response.token) {
+        localStorage.setItem('token', response.token);
+        setUser(response.user);
+      }
       return response;
     } catch (err) {
       setError(err.message);
@@ -48,9 +60,13 @@ export const AuthProvider = ({ children }) => {
   const logout = async () => {
     try {
       await authAPI.logout();
+      localStorage.removeItem('token');
       setUser(null);
     } catch (err) {
       console.error('Logout error:', err);
+      // Even if the server logout fails, clear local state
+      localStorage.removeItem('token');
+      setUser(null);
       throw err;
     }
   };
@@ -66,7 +82,8 @@ export const AuthProvider = ({ children }) => {
         login,
         logout,
         loading,
-        error
+        error,
+        isAuthenticated: !!user
       }}
     >
       {children}
