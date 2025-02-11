@@ -1,5 +1,5 @@
 // src/config/api.js
-const API_URL = import.meta.env.VITE_API_URL || 'https://backend-wiki-paralegal.onrender.com';
+const API_URL = process.env.REACT_APP_API_URL || 'https://backend-wiki-paralegal.onrender.com';
 
 const handleResponse = async (response) => {
   try {
@@ -28,7 +28,11 @@ export const authAPI = {
         body: JSON.stringify(credentials),
       });
       
-      return handleResponse(response);
+      const data = await handleResponse(response);
+      if (data.token) {
+        localStorage.setItem('token', data.token);
+      }
+      return data;
     } catch (error) {
       console.error('Error de login:', error);
       throw new Error(error.message || 'Error al conectar con el servidor');
@@ -51,7 +55,9 @@ export const authAPI = {
         },
       });
       
-      return handleResponse(response);
+      await handleResponse(response);
+      localStorage.removeItem('token');
+      return { success: true };
     } catch (error) {
       console.error('Error de logout:', error);
       throw new Error(error.message || 'Error al cerrar sesión');
@@ -75,6 +81,7 @@ export const authAPI = {
       return handleResponse(response);
     } catch (error) {
       console.error('Error al verificar autenticación:', error);
+      localStorage.removeItem('token'); // Limpiar token si hay error de autenticación
       throw new Error(error.message || 'Error al verificar la autenticación');
     }
   },
