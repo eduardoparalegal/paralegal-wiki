@@ -1,82 +1,62 @@
 // src/config/api.js
+const API_URL = process.env.REACT_APP_API_URL || 'https://backend-wiki-paralegal.onrender.com';
 
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+const handleResponse = async (response) => {
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || 'Algo salió mal');
+  }
+  return response.json();
+};
 
 export const authAPI = {
   login: async (credentials) => {
     try {
-      const response = await fetch(`${BASE_URL}/api/auth/login`, {
+      const response = await fetch(`${API_URL}/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Accept': 'application/json'
         },
-        body: JSON.stringify({
-          username: credentials.username,
-          password: credentials.password
-        }),
-        credentials: 'include'
+        body: JSON.stringify(credentials),
       });
-
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.message || 'Error de autenticación');
-      }
-
-      const data = await response.json();
-      return data;
+      return handleResponse(response);
     } catch (error) {
-      console.error('Login error:', error);
+      console.error('Error de login:', error);
       throw error;
     }
   },
 
   logout: async () => {
     try {
-      const response = await fetch(`${BASE_URL}/api/auth/logout`, {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${API_URL}/auth/logout`, {
         method: 'POST',
         headers: {
+          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
-          'Accept': 'application/json'
         },
-        credentials: 'include'
       });
-
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.message || 'Error en el logout');
-      }
-
-      const data = await response.json();
-      return data;
+      return handleResponse(response);
     } catch (error) {
-      console.error('Logout error:', error);
+      console.error('Error de logout:', error);
       throw error;
     }
   },
 
   checkAuth: async () => {
     try {
-      const response = await fetch(`${BASE_URL}/api/auth/check`, {
-        method: 'GET',
+      const token = localStorage.getItem('token');
+      if (!token) throw new Error('No se encontró el token');
+      
+      const response = await fetch(`${API_URL}/auth/check`, {
         headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${token}`,
         },
-        credentials: 'include'
       });
-
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.message || 'No autenticado');
-      }
-
-      const data = await response.json();
-      return data;
+      return handleResponse(response);
     } catch (error) {
-      console.error('Check auth error:', error);
+      console.error('Error al verificar autenticación:', error);
       throw error;
     }
-  }
+  },
 };
