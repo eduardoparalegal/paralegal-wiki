@@ -1,7 +1,4 @@
 // src/config/api.js
-import axios from 'axios';
-
-// Usar VITE_API_URL en lugar de REACT_APP_API_URL para Vite
 const API_URL = import.meta.env.VITE_API_URL || 'https://backend-wiki-paralegal.onrender.com';
 
 const handleResponse = async (response) => {
