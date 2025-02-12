@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
-import { useAuth } from '../../context/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { useAuth } from 'react';
 import { Eye, EyeOff, Loader } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 const AnimatedLogin = () => {
-  const navigate = useNavigate();
   const { login, error: authError } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -47,11 +46,13 @@ const AnimatedLogin = () => {
     setLoading(true);
     setError('');
 
+    // Marca todos los campos como tocados al intentar enviar
     setTouched({
       username: true,
       password: true
     });
 
+    // Validación
     const usernameError = getFieldError('username');
     const passwordError = getFieldError('password');
 
@@ -62,10 +63,7 @@ const AnimatedLogin = () => {
 
     try {
       const result = await login(credentials);
-      if (result && result.token) {
-        localStorage.setItem('token', result.token);
-        navigate('/dashboard');
-      } else {
+      if (!result?.token) {
         throw new Error('No se recibió un token válido');
       }
     } catch (err) {
@@ -89,9 +87,11 @@ const AnimatedLogin = () => {
         </div>
         
         {(error || authError) && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
-            <span className="block sm:inline">{error || authError}</span>
-          </div>
+          <Alert variant="destructive">
+            <AlertDescription>
+              {error || authError}
+            </AlertDescription>
+          </Alert>
         )}
 
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
@@ -165,7 +165,7 @@ const AnimatedLogin = () => {
               className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? (
-                <span className="flex items-center justify-center">
+                <span className="flex items-center">
                   <Loader className="animate-spin -ml-1 mr-2 h-4 w-4" />
                   Cargando...
                 </span>
