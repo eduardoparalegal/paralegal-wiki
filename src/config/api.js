@@ -1,23 +1,27 @@
 // src/config/api.js
-const API_URL = process.env.REACT_APP_API_URL || 'https://backend-wiki-paralegal.onrender.com';
+const API_URL = process.env.REACT_APP_API_URL || 'https://backend-wiki-paralegal.onrender.com/api';
 
 const handleResponse = async (response) => {
   try {
-    // Si la respuesta no es ok, intentamos obtener el mensaje de error
+    const contentType = response.headers.get('content-type');
+    const isJson = contentType && contentType.includes('application/json');
+    
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({
-        message: `Error del servidor: ${response.status}`
-      }));
-      throw new Error(errorData.message || 'Error del servidor');
+      if (isJson) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || `Error del servidor: ${response.status}`);
+      } else {
+        throw new Error(`Error del servidor: ${response.status}`);
+      }
     }
     
-    const data = await response.json();
-    return data;
+    if (isJson) {
+      return await response.json();
+    }
+    
+    return await response.text();
   } catch (error) {
     console.error('Error completo:', error);
-    if (error.name === 'SyntaxError') {
-      throw new Error('Error de conexión con el servidor');
-    }
     throw error;
   }
 };
@@ -33,10 +37,8 @@ export const authAPI = {
           'Content-Type': 'application/json',
           'Accept': 'application/json'
         },
-        body: JSON.stringify({
-          username: credentials.username,
-          password: credentials.password
-        })
+        credentials: 'include',
+        body: JSON.stringify(credentials)
       });
       
       console.log('Respuesta del servidor:', response.status);
@@ -50,32 +52,17 @@ export const authAPI = {
       }
     } catch (error) {
       console.error('Error detallado del login:', error);
-      throw new Error(error.message || 'Error al conectar con el servidor');
+      throw error;
     }
   },
 
   logout: async () => {
     try {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        throw new Error('No hay sesión activa');
-      }
-
-      const response = await fetch(`${API_URL}/auth/logout`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        }
-      });
-      
-      await handleResponse(response);
       localStorage.removeItem('token');
       return { success: true };
     } catch (error) {
       console.error('Error de logout:', error);
-      localStorage.removeItem('token'); // Limpiar token incluso si hay error
+      localStorage.removeItem('token');
       throw error;
     }
   },
@@ -87,11 +74,12 @@ export const authAPI = {
         throw new Error('No se encontró el token');
       }
       
-      const response = await fetch(`${API_URL}/auth/check`, {
+      const response = await fetch(`${API_URL}/auth/me`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Accept': 'application/json'
-        }
+        },
+        credentials: 'include'
       });
       
       return handleResponse(response);
