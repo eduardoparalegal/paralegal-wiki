@@ -1,6 +1,5 @@
 // src/config/api.js
-const API_URL = process.env.REACT_APP_API_URL || 'https://backend-wiki-paralegal.onrender.com/api';
-
+const API_URL = 'https://backend-wiki-paralegal.onrender.com/api';
 const handleResponse = async (response) => {
   try {
     const contentType = response.headers.get('content-type');

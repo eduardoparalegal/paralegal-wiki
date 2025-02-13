@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Layout from './components/Layout';
 import HomePage from './components/HomePage';
 import PleadingsPage from './components/PleadingsPage';
@@ -13,7 +13,6 @@ import { ThemeProvider } from './context/ThemeContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from './components/ui/Card';
 
-// Importar los componentes con la ruta corregida
 import CaseSearchPage from './pages/CaseSearchPage';
 import HistoryPage from './pages/HistoryPage';
 import SavedCasesPage from './pages/SavedCasesPage';
@@ -34,10 +33,6 @@ const ProtectedRoute = ({ children }) => {
     return <Loader />;
   }
   
-  if (!user) {
-    return <Navigate to="/login" replace />;
-  }
-
   return children;
 };
 
@@ -96,21 +91,6 @@ const DeclarationPage = () => {
   );
 };
 
-const PleadingsRoutes = () => {
-  return (
-    <Routes>
-      <Route index element={<PleadingsPage />} />
-      <Route path="how-to-draft-pleadings" element={<HowToDraftPleadings />} />
-      <Route path="how-to-know-respondent-pleadings" element={<HowToKnowPleadings />} />
-      <Route path="42b-eligibility-check" element={<EligibilityCheck />} />
-      <Route path="case-type-guidelines" element={<CaseTypeGuidelines />} />
-      <Route path="nta-templates" element={<NtaTemplates />} />
-      <Route path="special-cases" element={<SpecialCases />} />
-      <Route path="information-pleadings" element={<InformationPleadings />} />
-    </Routes>
-  );
-};
-
 function App() {
   return (
     <AuthProvider>
@@ -119,9 +99,10 @@ function App() {
           <Routes>
             <Route path="/login" element={<AnimatedLogin />} />
             
+            {/* Cambiado para redirigir a /home en lugar de /login */}
             <Route 
               path="/" 
-              element={<Navigate to="/login" replace />} 
+              element={<Layout><HomePage /></Layout>} 
             />
 
             <Route
@@ -130,7 +111,7 @@ function App() {
                 <ProtectedRoute>
                   <Layout>
                     <Routes>
-                    <Route path="home" element={<HomePage />} />
+                      <Route path="home" element={<HomePage />} />
                       <Route path="pleadings" element={<PleadingsPage />} />
                       <Route path="motions" element={<MotionsPage />} />
                       <Route path="declaration" element={<ClientForm />} />
@@ -146,7 +127,6 @@ function App() {
                       <Route path="pleadings/templates" element={<NtaTemplates />} />
                       <Route path="pleadings/special" element={<SpecialCases />} />
                       <Route path="pleadings/information" element={<InformationPleadings />} />
-                   
                     </Routes>
                   </Layout>
                 </ProtectedRoute>
